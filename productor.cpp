@@ -1,5 +1,5 @@
 #include "productor.h"
-#include "messagequeue.h"
+#include "semaforo.h"
 
 #include <iostream>
 #include <queue>
@@ -9,24 +9,24 @@
 #include <thread>
 
 // Recursos compartidos
-extern std::queue<Job> buffer;
+extern std::queue<Job> messageQueue;
 
-extern MessageQueue hay_espacio;
-extern MessageQueue hay_datos;
+extern Semaforo hay_espacio;
+extern Semaforo hay_datos;
 
-std::mutex mtx_buffer;
+extern std::mutex mtx_queue;
 
 const int tam = 10; // lo puse en 10 para ir probando
 
 int contador = 0; //contador que usa job para el id
 
-// carga el job con 1 free / 2 vip
+// carga el job con 0 free / 1 premium
 void cargarJob(Job& j) {
 
     j.id = contador;
     contador++;
 
-    j.prioridad = (std::rand() % 2) + 1;
+    j.prioridad = std::rand() % 2;
 }
 
 void productor() {
@@ -43,10 +43,10 @@ void productor() {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         // mutex cola
-        mtx_buffer.lock();
+        mtx_queue.lock();
 
         cargarJob(job);
-        buffer.push(job); //en el bufer se guarda lo que se cargue en job
+        messageQueue.push(job); //en el bufer se guarda lo que se cargue en job
 
         producidos++;
 
@@ -59,7 +59,7 @@ void productor() {
             << job.prioridad
             << std::endl;
 
-        mtx_buffer.unlock();
+        mtx_queue.unlock();
 
         // avisa dato disponible
         signal(hay_datos);

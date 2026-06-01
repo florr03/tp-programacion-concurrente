@@ -1,37 +1,42 @@
-#include "productor.h"
-#include "messagequeue.h"
-
 #include <iostream>
 #include <thread>
 #include <queue>
+#include <mutex>
 
-std::queue<Job> buffer;
+#include "productor.h"
+#include "worker.h"
+#include "vram_pool.h"
+#include "semaforo.h"
 
-// Semaforo bufer message queue
-MessageQueue hay_espacio;
-MessageQueue hay_datos;
+// Cola compartida (Buffer 1 - Message Queue)
+std::queue<Job> messageQueue;
+
+// Semaforos productor-consumidor
+Semaforo hay_espacio;
+Semaforo hay_datos;
+
+// Mutex de la cola
+std::mutex mtx_queue;
 
 int main()
 {
     init(hay_espacio, 10);
-
     init(hay_datos, 0);
 
-    std::thread t1(productor);
+    initVRAM();
 
-    t1.join();
+    // Productor
+    std::thread t_prod(productor);
 
-    //esta parte lo hice para verificar que se guardaba en el bufer los datos
-        std::queue<Job> copia = buffer;
-        std::cout<<"\n"<<std::endl;
-        while (!copia.empty()) {
-            Job j = copia.front();
-            std::cout << "ID: " << j.id
-                      << " Prioridad: " << j.prioridad
-                      << std::endl;
+    // Workers
+    std::thread w1(worker, 1);
+    std::thread w2(worker, 2);
+    std::thread w3(worker, 3);
 
-            copia.pop();
-        }
+    t_prod.join();
+    w1.join();
+    w2.join();
+    w3.join();
 
     return 0;
 }
