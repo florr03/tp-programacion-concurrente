@@ -1,28 +1,16 @@
 #include <iostream>
 #include <thread>
-#include <queue>
-#include <mutex>
 
 #include "productor.h"
 #include "worker.h"
 #include "vram_pool.h"
-#include "semaforo.h"
+#include "messagequeue.h"
 
-// Cola compartida (Buffer 1 - Message Queue)
-std::queue<Job> messageQueue;
-
-// Semaforos productor-consumidor
-Semaforo hay_espacio;
-Semaforo hay_datos;
-
-// Mutex de la cola
-std::mutex mtx_queue;
+// Buffer 1 - MessageQueue con prioridad y anti-starvation
+MessageQueue messageQueue;
 
 int main()
 {
-    init(hay_espacio, 10);
-    init(hay_datos, 0);
-
     initVRAM();
 
     // Productor

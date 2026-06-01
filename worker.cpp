@@ -1,50 +1,25 @@
 #include "worker.h"
 #include "vram_pool.h"
 #include "semaforo.h"
+#include "messagequeue.h"
 
 #include <iostream>
-#include <queue>
 #include <thread>
 #include <chrono>
 #include <mutex>
 
-// Cola compartida
-extern std::queue<Job> messageQueue;
-
-// Semáforo de jobs disponibles
-extern Semaforo hay_datos;
-
-// Mutex de la cola
-extern std::mutex mtx_queue;
+// Cola compartida (Buffer 1)
+extern MessageQueue messageQueue;
 
 void worker(int id_worker) {
 
     while (true) {
 
         // ===================================
-        // Espera jobs disponibles
+        // Espera (pasiva) y extrae job de la cola
         // ===================================
 
-        wait(hay_datos);
-
-        // ===================================
-        // Extrae job de la cola
-        // ===================================
-
-        mtx_queue.lock();
-
-        if (messageQueue.empty()) {
-
-            mtx_queue.unlock();
-
-            continue;
-        }
-
-        Job job = messageQueue.front();
-
-        messageQueue.pop();
-
-        mtx_queue.unlock();
+        Job job = messageQueue.extraer();
 
         // ===================================
         // Espera slot libre en VRAM
