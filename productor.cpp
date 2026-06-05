@@ -1,5 +1,6 @@
 #include "productor.h"
 #include "messagequeue.h"
+#include "logger.h"
 
 #include <iostream>
 #include <cstdlib>
@@ -34,6 +35,12 @@ void productor() {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         cargarJob(job);
+        escribirLog(
+        job.id,
+        job.prioridad,
+        "CREADO"
+        );
+
         messageQueue.push(job);
 
         producidos++;
