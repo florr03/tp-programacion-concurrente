@@ -2,6 +2,8 @@
 #include "vram_pool.h"
 #include "semaforo.h"
 #include "messagequeue.h"
+#include "logger.h"
+#include "contador.h"
 
 #include <iostream>
 #include <thread>
@@ -45,6 +47,14 @@ void worker(int id_worker) {
         );
 
         poolVRAM.push_back(job);
+
+        job.estado = ASIGNADO_VRAM;
+
+        escribirLog(
+        job.id,
+        job.prioridad,
+        "ASIGNADO_VRAM"
+        );
 
         std::cout << "[WORKER "
                   << id_worker
@@ -106,6 +116,16 @@ void worker(int id_worker) {
                   << " FINALIZADO"
                   << std::endl;
 
+        job.estado = FINALIZADO;
+
+        escribirLog(
+        job.id,
+        job.prioridad,
+       "FINALIZADO"
+        );
+
+        incrementarFinalizados();
+        
         mtx_vram.unlock();
 
         // ===================================
