@@ -10,12 +10,13 @@
 #include <chrono>
 #include <mutex>
 
+const int tam = 10;
 // Cola compartida (Buffer 1)
 extern MessageQueue messageQueue;
 
 void worker(int id_worker) {
 
-    while (true) {
+    for (int i = 0; i < tam; i++)  {
 
         // ===================================
         // Espera (pasiva) y extrae job de la cola

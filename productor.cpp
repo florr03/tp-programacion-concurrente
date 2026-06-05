@@ -10,15 +10,19 @@
 // Recurso compartido
 extern MessageQueue messageQueue;
 
+std::mutex mtx_contador_id;
+
 const int tam = 10; // lo puse en 10 para ir probando
 
 int contador = 0; //contador que usa job para el id
 
 // carga el job con 0 free / 1 premium
 void cargarJob(Job& j) {
-
+    //aguegue mutex por si se pisan los productores
+    mtx_contador_id.lock();
     j.id = contador;
     contador++;
+    mtx_contador_id.unlock();
 
     j.prioridad = std::rand() % 2;
 }

@@ -6,6 +6,7 @@
 #include "vram_pool.h"
 #include "messagequeue.h"
 
+
 // Buffer 1 - MessageQueue con prioridad y anti-starvation
 MessageQueue messageQueue;
 

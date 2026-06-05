@@ -4,7 +4,8 @@
 #include "job.h"
 
 void productor();
-void consumidor();
+
+//void consumidor(); -> no se utiliza
 void cargarJob(Job& j);
 
 #endif
