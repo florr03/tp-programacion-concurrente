@@ -38,7 +38,7 @@ void worker(int id_worker) {
         mtx_cout.unlock();
 
         std::this_thread::sleep_for(
-            std::chrono::milliseconds(45)
+            std::chrono::milliseconds(450)
         );
 
         poolVRAM.push_back(job);
@@ -74,7 +74,7 @@ void worker(int id_worker) {
         mtx_cout.unlock();
 
         std::this_thread::sleep_for(
-            std::chrono::milliseconds(60)
+            std::chrono::milliseconds(600)
         );
 
         // Liberación de VRAM
@@ -92,7 +92,7 @@ void worker(int id_worker) {
         mtx_cout.unlock();
 
         std::this_thread::sleep_for(
-            std::chrono::milliseconds(25)
+            std::chrono::milliseconds(250)
         );
 
         for (int i = 0; i < poolVRAM.size(); i++) {
