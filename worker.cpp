@@ -10,41 +10,35 @@
 #include <chrono>
 #include <mutex>
 
-extern const int tam;
+extern const int jobs;
+extern std::mutex mtx_cout;
+
 // Cola compartida (Buffer 1)
 extern MessageQueue messageQueue;
 
 void worker(int id_worker) {
 
-    for (int i = 0; i < tam/2; i++)  {
-
-        // ===================================
-        // Espera (pasiva) y extrae job de la cola
-        // ===================================
+    for (int i = 0; i < jobs/3; i++)  {
 
         Job job = messageQueue.extraer();
 
-        // ===================================
-        // Espera slot libre en VRAM
-        // ===================================
-
         wait(slots_vram);
 
-        // ===================================
         // Asignación a VRAM
-        // ===================================
 
         mtx_vram.lock();
 
+        mtx_cout.lock();
         std::cout << "[WORKER "
                   << id_worker
                   << "] Asignando Job "
                   << job.id
                   << " a VRAM..."
                   << std::endl;
+        mtx_cout.unlock();
 
         std::this_thread::sleep_for(
-            std::chrono::milliseconds(450)
+            std::chrono::milliseconds(45)
         );
 
         poolVRAM.push_back(job);
@@ -52,50 +46,53 @@ void worker(int id_worker) {
         job.estado = ASIGNADO_VRAM;
 
         escribirLog(
-        job.id,
-        job.prioridad,
-        "ASIGNADO_VRAM"
+            job.id,
+            job.prioridad,
+            "ASIGNADO_VRAM"
         );
 
+        mtx_cout.lock();
         std::cout << "[WORKER "
                   << id_worker
                   << "] Job "
                   << job.id
                   << " ASIGNADO_VRAM"
                   << std::endl;
+        mtx_cout.unlock();
 
         mtx_vram.unlock();
 
-        // ===================================
         // Procesamiento
-        // ===================================
 
+        mtx_cout.lock();
         std::cout << "[WORKER "
                   << id_worker
                   << "] Procesando Job "
                   << job.id
                   << "..."
                   << std::endl;
+        mtx_cout.unlock();
 
         std::this_thread::sleep_for(
-            std::chrono::milliseconds(600)
+            std::chrono::milliseconds(60)
         );
 
-        // ===================================
         // Liberación de VRAM
-        // ===================================
+
 
         mtx_vram.lock();
 
+        mtx_cout.lock();
         std::cout << "[WORKER "
                   << id_worker
                   << "] Liberando Job "
                   << job.id
                   << "..."
                   << std::endl;
+        mtx_cout.unlock();
 
         std::this_thread::sleep_for(
-            std::chrono::milliseconds(250)
+            std::chrono::milliseconds(25)
         );
 
         for (int i = 0; i < poolVRAM.size(); i++) {
@@ -110,28 +107,26 @@ void worker(int id_worker) {
             }
         }
 
+        mtx_cout.lock();
         std::cout << "[WORKER "
                   << id_worker
                   << "] Job "
                   << job.id
                   << " FINALIZADO"
                   << std::endl;
+        mtx_cout.unlock();
 
         job.estado = FINALIZADO;
 
         escribirLog(
-        job.id,
-        job.prioridad,
-       "FINALIZADO"
+            job.id,
+            job.prioridad,
+            "FINALIZADO"
         );
 
         incrementarFinalizados();
 
         mtx_vram.unlock();
-
-        // ===================================
-        // Libera slot
-        // ===================================
 
         signal(slots_vram);
     }

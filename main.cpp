@@ -16,18 +16,31 @@ int main()
     initVRAM();
 
     // Productor
-    std::thread t_prod(productor,1);
+    std::thread t_prod1(productor,1);
+    std::thread t_prod2(productor,2);
+    std::thread t_prod3(productor,3);
+
 
 
     // Workers
     std::thread w1(worker, 1);
     std::thread w2(worker, 2);
+    std::thread w3(worker, 3);
 
 
-    t_prod.join();
+
+    t_prod1.join();
+    t_prod2.join();
+    t_prod3.join();
+
 
     w1.join();
     w2.join();
+    w3.join();
+
+
+
+
 
 
     return 0;

@@ -13,13 +13,13 @@ extern MessageQueue messageQueue;
 std::mutex mtx_contador_id;
 std::mutex mtx_cout;
 
-extern const int tam; // lo puse en 10 para ir probando
+extern const int jobs;
 
-int contador = 0; //contador que usa job para el id
+int contador = 0;
 
 // carga el job con 0 free / 1 premium
 void cargarJob(Job& j) {
-    //aguegue mutex por si se pisan los productores
+
     mtx_contador_id.lock();
     j.id = contador;
     contador++;
@@ -35,7 +35,7 @@ void productor(int id_productor) {
 
     Job job;
 
-    for (int i = 0; i < tam; i++) {
+    for (int i = 0; i < jobs/3; i++) {
 
         //duerme por 100 ms antes de iniciar
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -64,7 +64,7 @@ void productor(int id_productor) {
 
         producidos++;
 
-        //esta parte la use para ver que cargaba el cargarJob
+
     }
 
 }
