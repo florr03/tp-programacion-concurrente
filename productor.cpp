@@ -28,6 +28,7 @@ void cargarJob(Job& j) {
     j.prioridad = std::rand() % 2;
 }
 
+// el tamanio varia segun la cantidad de productores, ejemplo: 2 productores seria tam/2
 void productor(int id_productor) {
 
     int producidos = 0;
