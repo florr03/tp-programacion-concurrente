@@ -13,7 +13,7 @@ extern MessageQueue messageQueue;
 std::mutex mtx_contador_id;
 std::mutex mtx_cout;
 
-const int tam = 10; // lo puse en 10 para ir probando
+extern const int tam; // lo puse en 10 para ir probando
 
 int contador = 0; //contador que usa job para el id
 
@@ -35,7 +35,7 @@ void productor(int id_productor) {
 
     Job job;
 
-    for (int i = 0; i < tam/2; i++) {
+    for (int i = 0; i < tam; i++) {
 
         //duerme por 100 ms antes de iniciar
         std::this_thread::sleep_for(std::chrono::milliseconds(100));

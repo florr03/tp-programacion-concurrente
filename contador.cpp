@@ -2,6 +2,7 @@
 #include <mutex>
 
 int tareasFinalizadas = 0;
+int tam = 20;
 
 std::mutex mtx_contador;
 
