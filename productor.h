@@ -3,7 +3,7 @@
 
 #include "job.h"
 
-void productor();
+void productor(int id_productor);
 
 //void consumidor(); -> no se utiliza
 void cargarJob(Job& j);
