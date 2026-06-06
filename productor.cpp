@@ -11,6 +11,7 @@
 extern MessageQueue messageQueue;
 
 std::mutex mtx_contador_id;
+std::mutex mtx_cout;
 
 const int tam = 10; // lo puse en 10 para ir probando
 
@@ -27,13 +28,13 @@ void cargarJob(Job& j) {
     j.prioridad = std::rand() % 2;
 }
 
-void productor() {
+void productor(int id_productor) {
 
     int producidos = 0;
 
     Job job;
 
-    for (int i = 0; i < tam; i++) {
+    for (int i = 0; i < tam/2; i++) {
 
         //duerme por 100 ms antes de iniciar
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -47,17 +48,24 @@ void productor() {
 
         messageQueue.push(job);
 
+        mtx_cout.lock();
+
+        std::cout
+            << "[PRODUCTOR "
+            << id_productor
+            << "] Job "
+            << job.id
+            << " prioridad "
+            << job.prioridad
+            << std::endl;
+
+        mtx_cout.unlock();
+
         producidos++;
 
         //esta parte la use para ver que cargaba el cargarJob
-        std::cout
-            <<"ID: "
-            << job.id
-            << " prioridad: "
-            << job.prioridad
-            << std::endl;
     }
-
-        std::cout<<"\n"<<std::endl;
+    mtx_cout.lock();
     std::cout << "Producidos: " << producidos << std::endl;
+    mtx_cout.unlock();
 }
