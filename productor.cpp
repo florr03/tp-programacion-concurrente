@@ -66,7 +66,5 @@ void productor(int id_productor) {
 
         //esta parte la use para ver que cargaba el cargarJob
     }
-    mtx_cout.lock();
-    std::cout << "Producidos: " << producidos << std::endl;
-    mtx_cout.unlock();
+
 }
