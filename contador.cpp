@@ -2,27 +2,17 @@
 #include <mutex>
 
 int tareasFinalizadas = 0;
-int jobs = 15;
-
 std::mutex mtx_contador;
 
-void incrementarFinalizados()
-{
+void incrementarFinalizados() {
     mtx_contador.lock();
-
     tareasFinalizadas++;
-
     mtx_contador.unlock();
 }
 
-int obtenerFinalizados()
-{
+int obtenerFinalizados() {
     mtx_contador.lock();
-
     int valor = tareasFinalizadas;
-
     mtx_contador.unlock();
-
     return valor;
 }
-

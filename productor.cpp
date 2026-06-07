@@ -1,70 +1,40 @@
 #include "productor.h"
 #include "messagequeue.h"
 #include "logger.h"
-
 #include <iostream>
 #include <cstdlib>
-#include <chrono>
 #include <thread>
 
-// Recurso compartido
 extern MessageQueue messageQueue;
-
-std::mutex mtx_contador_id;
-std::mutex mtx_cout;
-
 extern const int jobs;
 
+std::mutex mtx_contador_id;
+extern std::mutex mtx_cout;
 int contador = 0;
 
-// carga el job con 0 free / 1 premium
 void cargarJob(Job& j) {
-
-    mtx_contador_id.lock();
+    mtx_contador_id.lock(); // Mutex clasico para seccion critica
     j.id = contador;
     contador++;
     mtx_contador_id.unlock();
 
-    j.prioridad = std::rand() % 2;
+    j.prioridad = std::rand() % 2; // 0 o 1
 }
 
-// el tamanio varia segun la cantidad de productores, ejemplo: 2 productores seria tam/2
 void productor(int id_productor) {
-
-    int producidos = 0;
-
     Job job;
-
-    for (int i = 0; i < jobs/3; i++) {
-
-        //duerme por 100 ms antes de iniciar
+    for (int i = 0; i < jobs / 3; i++) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         cargarJob(job);
-        escribirLog(
-        job.id,
-        job.prioridad,
-        "CREADO"
-        );
+        escribirLog(job.id, job.prioridad, "CREADO");
 
-        messageQueue.push(job);
+        // Llama a la funcion push global pasandole la cola como referencia
+        push(messageQueue, job);
 
         mtx_cout.lock();
-
-        std::cout
-            << "[PRODUCTOR "
-            << id_productor
-            << "] Job "
-            << job.id
-            << " prioridad "
-            << job.prioridad
-            << std::endl;
-
+        std::cout << "[PRODUCTOR " << id_productor << "] Job " << job.id
+                  << " ingresado a la cola." << std::endl;
         mtx_cout.unlock();
-
-        producidos++;
-
-
     }
-
 }

@@ -1,66 +1,59 @@
 #include "messagequeue.h"
 #include "logger.h"
 
-// Umbral de aging: un Job Free que espero al menos este tiempo
-// se despacha por encima de los Premium (anti-starvation).
-static const int UMBRAL_ANTI_STARVATION_MS = 5000;
+static const int UMBRAL_AGING_SEGUNDOS = 5;
 
-void MessageQueue::push(Job j) {
+void push(MessageQueue& mq, Job j) {
     j.estado = EN_COLA;
 
     {
-        std::unique_lock<std::mutex> lock(mtx);
+        std::unique_lock<std::mutex> lock(mq.mtx);
 
         Entrada e;
         e.job = j;
-        e.tiempoEncolado = std::chrono::high_resolution_clock::now();
+        e.tiempoEncolado = std::time(nullptr); // Guarda el tiempo en segundos
 
         if (j.prioridad == 1) {
-            colaPremium.push(e);
+            mq.colaPremium.push(e);
         } else {
-            colaFree.push(e);
+            mq.colaFree.push(e);
         }
 
-        cv.notify_one();
+        mq.cv.notify_one(); // Avisa a un Worker que esta en espera
     }
 
     escribirLog(j.id, j.prioridad, "EN_COLA");
 }
 
-Job MessageQueue::extraer() {
-    std::unique_lock<std::mutex> lock(mtx);
+Job extraer(MessageQueue& mq) {
+    std::unique_lock<std::mutex> lock(mq.mtx);
 
-    // Espera pasiva si no hay nada
-    while (colaPremium.empty() && colaFree.empty()) {
-        cv.wait(lock);
+    // Espera pasiva contra Livelock
+    while (mq.colaPremium.empty() && mq.colaFree.empty()) {
+        mq.cv.wait(lock);
     }
 
-    // Politica de despacho (Scheduler):
-    // 1. Si el Free al frente ya espero >= 5000ms, lo despachamos (aging)
-    // 2. Si hay Premium, despachamos Premium
-    // 3. Sino, despachamos Free
-    if (!colaFree.empty()) {
-        std::chrono::high_resolution_clock::time_point ahora =
-            std::chrono::high_resolution_clock::now();
+    // --- ALGORITMO DE AGING (Anti-Starvation) ---
+    if (!mq.colaFree.empty()) {
+        std::time_t ahora = std::time(nullptr);
+        double tiempoEspera = std::difftime(ahora, mq.colaFree.front().tiempoEncolado);
 
-        long espera = std::chrono::duration_cast<std::chrono::milliseconds>(
-            ahora - colaFree.front().tiempoEncolado
-        ).count();
-
-        if (espera >= UMBRAL_ANTI_STARVATION_MS) {
-            Job j = colaFree.front().job;
-            colaFree.pop();
-            return j;
+        if (tiempoEspera >= UMBRAL_AGING_SEGUNDOS) {
+            Job j = mq.colaFree.front().job;
+            mq.colaFree.pop();
+            return j; // Atiende al Free viejo por equidad
         }
     }
 
-    if (!colaPremium.empty()) {
-        Job j = colaPremium.front().job;
-        colaPremium.pop();
+    // Planificacion normal: Primero Premium
+    if (!mq.colaPremium.empty()) {
+        Job j = mq.colaPremium.front().job;
+        mq.colaPremium.pop();
         return j;
     }
 
-    Job j = colaFree.front().job;
-    colaFree.pop();
+    // Si no hay Premium, atiende Free comun
+    Job j = mq.colaFree.front().job;
+    mq.colaFree.pop();
     return j;
 }

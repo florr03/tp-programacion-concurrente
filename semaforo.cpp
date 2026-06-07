@@ -5,21 +5,16 @@ void init(Semaforo& s, int n) {
 }
 
 void wait(Semaforo& s) {
-
     std::unique_lock<std::mutex> lock(s.mtx);
-
+    // El while es clave (evita despertares falsos del kernel)
     while (s.contador == 0) {
         s.cv.wait(lock);
     }
-
     s.contador--;
 }
 
 void signal(Semaforo& s) {
-
     std::unique_lock<std::mutex> lock(s.mtx);
-
     s.contador++;
-
-    s.cv.notify_one();
+    s.cv.notify_one(); // Despierta pasivamente a un hilo suspendido
 }

@@ -3,11 +3,6 @@
 
 #include <string>
 
-void escribirLog(
-    int id,
-    int prioridad,
-    const std::string& evento
-);
+void escribirLog(int id, int prioridad, const std::string& evento);
 
 #endif
-

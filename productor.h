@@ -3,7 +3,7 @@
 
 #include "job.h"
 
-void productor(int id_productor);
 void cargarJob(Job& j);
+void productor(int id_productor);
 
 #endif
